@@ -4,226 +4,561 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจองสลากกาชาดและของดีจังหวัดลำปาง</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         body { font-family: 'Sarabun', sans-serif; }
     </style>
-      <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
+
 <body class="bg-gray-50 text-gray-800">
 
-    <header class="bg-red-700 text-white shadow-md">
-        <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-bold">ระบบติดตามการจองสลากกาชาดและของดีจังหวัดลำปาง</h1>
-                <p class="text-red-100 mt-1">กำหนดรวบรวมและนำส่งเงินภายในวันที่ 10 พฤศจิกายน 2569</p>
-            </div>
-            <div>
-                <a href="https://docs.google.com/forms/d/1ZnY_rmA8eGrHeThk0DR9XMEQDdwNHD5xwrN5gRPh0ts/viewform" target="_blank" class="bg-white text-red-700 hover:bg-red-50 font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    กรอกแบบฟอร์มจองสลาก
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <main class="container mx-auto px-4 py-8 space-y-8">
-        
-        <div id="loading" class="text-center py-10">
-            <p class="text-lg text-gray-500 animate-pulse">กำลังโหลดข้อมูลจาก Google Sheets...</p>
+<header class="bg-red-700 text-white shadow-md">
+    <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold">
+                ระบบติดตามการจองสลากกาชาดและของดีจังหวัดลำปาง
+            </h1>
+            <p class="text-red-100 mt-1">
+                กำหนดรวบรวมและนำส่งเงินภายในวันที่ 10 พฤศจิกายน 2569
+            </p>
         </div>
 
-        <div id="mainContent" class="hidden space-y-8">
-            
-            <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">รพ.สต. ทั้งหมด</p>
-                    <h3 id="totalHospitals" class="text-3xl font-bold text-gray-800 mt-2">0 <span class="text-sm font-normal text-gray-500">แห่ง</span></h3>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">สลากที่จองแล้ว</p>
-                    <h3 id="totalBooked" class="text-3xl font-bold text-green-600 mt-2">0 <span class="text-sm font-normal text-gray-500">ฉบับ</span></h3>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">สลากยังไม่จอง</p>
-                    <h3 id="totalAvailable" class="text-3xl font-bold text-orange-500 mt-2">0 <span class="text-sm font-normal text-gray-500">ฉบับ</span></h3>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">ยอดเงินรวม (ส่ง 1 พ.ย. 69)</p>
-                    <h3 id="totalMoney" class="text-3xl font-bold text-red-600 mt-2">0 <span class="text-sm font-normal text-gray-500">บาท</span></h3>
-                </div>
-            </section>
-
-            <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="w-full md:w-1/3">
-                    <input type="text" id="searchInput" placeholder="ค้นหาเลขสลาก หรือ ชื่อ รพ.สต...." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
-                </div>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <button onclick="filterTable('all')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">ทั้งหมด</button>
-                    <button onclick="filterTable('booked')" class="px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition">จองแล้ว</button>
-                    <button onclick="filterTable('available')" class="px-4 py-2 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg text-sm font-medium transition">ยังไม่จอง</button>
-                </div>
-            </section>
-
-            <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h2 class="text-lg font-bold text-gray-800">สถานะเลขที่สลากทั้งหมดและ รพ.สต. ผู้จอง</h2>
-                </div>
-                <div class="overflow-x-auto max-h-96 overflow-y-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50 text-gray-600 text-sm sticky top-0">
-                            <tr>
-                                <th class="px-6 py-3 font-semibold">เลขที่สลาก</th>
-                                <th class="px-6 py-3 font-semibold">สถานะ</th>
-                                <th class="px-6 py-3 font-semibold">รพ.สต. ผู้จอง</th>
-                                <th class="px-6 py-3 font-semibold">ราคา (บาท)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ticketTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h2 class="text-lg font-bold text-gray-800">สรุปยอดจองและเงินที่ต้องนำส่งราย รพ.สต. (กำหนดส่ง 10 พ.ย. 69)</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50 text-gray-600 text-sm">
-                            <tr>
-                                <th class="px-6 py-3 font-semibold">ชื่อหน่วยบริการ (รพ.สต.)</th>
-                                <th class="px-6 py-3 font-semibold">จำนวนสลากที่จอง (ฉบับ)</th>
-                                <th class="px-6 py-3 font-semibold">เลขที่สลากที่จอง</th>
-                                <th class="px-6 py-3 font-semibold">ยอดเงินรวม (บาท)</th>
-                                <th class="px-6 py-3 font-semibold">สถานะการส่งเงิน</th>
-                            </tr>
-                        </thead>
-                        <tbody id="hospitalTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- ส่วนแสดงภาพถ่ายสลากกาชาดต้นฉบับ -->
-            <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-                <h2 class="text-lg font-bold text-gray-800">ภาพถ่ายตัวอย่างสลากกาชาด (23 เล่ม)</h2>
-                <p class="text-sm text-gray-500">ภาพต้นฉบับเล่มสลากกาชาดการกุศลงานฤดูหนาวและของดีนครลำปาง ประจำปี 2569</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="border rounded-xl p-3 bg-gray-50 shadow-sm">
-        <p class="text-xs font-semibold text-gray-600 mb-2 text-center">ชุดที่ 1</p>
-        <img src="ticket1.jpg" alt="ภาพสลากชุดที่ 1" class="w-full h-auto rounded-lg object-cover">
+        <a href="https://docs.google.com/forms/d/1ZnY_rmA8eGrHeThk0DR9XMEQDdwNHD5xwrN5gRPh0ts/viewform"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="bg-white text-red-700 hover:bg-red-50 font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            กรอกแบบฟอร์มจองสลาก
+        </a>
     </div>
-    <div class="border rounded-xl p-3 bg-gray-50 shadow-sm">
-        <p class="text-xs font-semibold text-gray-600 mb-2 text-center">ชุดที่ 2</p>
-        <img src="ticket2.jpg" alt="ภาพสลากชุดที่ 2" class="w-full h-auto rounded-lg object-cover">
+</header>
+
+<main class="container mx-auto px-4 py-8 space-y-8">
+
+    <div id="loading" class="text-center py-10">
+        <p class="text-lg text-gray-500 animate-pulse">กำลังโหลดข้อมูลจาก Google Sheets...</p>
     </div>
-</div>
-            </section>
 
-        </div>
-    </main>
+    <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-xl p-4"></div>
 
-    <footer class="text-center py-6 text-gray-500 text-sm">
-        <p>ระบบสนับสนุนงานกาชาดจังหวัดลำปาง ปี 2569</p>
-    </footer>
+    <div id="mainContent" class="hidden space-y-8">
 
-    <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6Am9YmHU57ca86xLwlZUpl24vfL6NcqVFpSEtcm-bQ7PaIMmYHOLbVtceCZPrwfk/exec";
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 font-medium">รพ.สต. ทั้งหมด</p>
+                <h3 id="totalHospitals" class="text-3xl font-bold text-gray-800 mt-2">0 แห่ง</h3>
+            </div>
 
-        let globalData = { hospitals: [], tickets: [] };
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 font-medium">สลากที่จองแล้ว</p>
+                <h3 id="totalBooked" class="text-3xl font-bold text-green-600 mt-2">0 ฉบับ</h3>
+            </div>
 
-        function loadData() {
-            const script = document.createElement('script');
-            script.src = `${WEB_APP_URL}?callback=handleResponse`;
-            document.body.appendChild(script);
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 font-medium">สลากยังไม่จอง</p>
+                <h3 id="totalAvailable" class="text-3xl font-bold text-orange-500 mt-2">0 ฉบับ</h3>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 font-medium">ยอดเงินรวม (ส่ง 10 พ.ย. 69)</p>
+                <h3 id="totalMoney" class="text-3xl font-bold text-red-600 mt-2">0 บาท</h3>
+            </div>
+        </section>
+
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="w-full md:w-1/3">
+                <input type="text"
+                       id="searchInput"
+                       placeholder="ค้นหาเลขสลาก หรือชื่อ รพ.สต...."
+                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div class="flex gap-2 w-full md:w-auto">
+                <button type="button" onclick="filterTable('all')"
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">
+                    ทั้งหมด
+                </button>
+                <button type="button" onclick="filterTable('booked')"
+                        class="px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition">
+                    จองแล้ว
+                </button>
+                <button type="button" onclick="filterTable('available')"
+                        class="px-4 py-2 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg text-sm font-medium transition">
+                    ยังไม่จอง
+                </button>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-lg font-bold text-gray-800">สถานะเลขที่สลากทั้งหมดและ รพ.สต. ผู้จอง</h2>
+            </div>
+
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-gray-600 text-sm sticky top-0">
+                        <tr>
+                            <th class="px-6 py-3 font-semibold">เลขที่สลาก</th>
+                            <th class="px-6 py-3 font-semibold">สถานะ</th>
+                            <th class="px-6 py-3 font-semibold">รพ.สต. ผู้จอง</th>
+                            <th class="px-6 py-3 font-semibold">ราคา (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <h2 class="text-lg font-bold text-gray-800">
+                    สรุปยอดจองและเงินที่ต้องนำส่งราย รพ.สต. (กำหนดส่ง 10 พ.ย. 69)
+                </h2>
+
+                <label class="flex items-center gap-2 text-sm">
+                    <span>แสดง:</span>
+                    <select id="hospitalFilter"
+                            class="border rounded-lg px-3 py-2 bg-white"
+                            onchange="filterHospitalSummary()">
+                        <option value="all">รพ.สต. ทั้งหมด</option>
+                        <option value="booked">มีการจอง</option>
+                        <option value="unbooked">ยังไม่มีการจอง</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-gray-600 text-sm">
+                        <tr>
+                            <th class="px-6 py-3 font-semibold">ชื่อหน่วยบริการ (รพ.สต.)</th>
+                            <th class="px-6 py-3 font-semibold">จำนวนสลากที่จอง (ฉบับ)</th>
+                            <th class="px-6 py-3 font-semibold">เลขที่สลากที่จอง</th>
+                            <th class="px-6 py-3 font-semibold">ยอดเงินรวม (บาท)</th>
+                            <th class="px-6 py-3 font-semibold">สถานะการส่งเงิน</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hospitalTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-5 border-b">
+                <div>
+                    <h2 class="text-lg font-semibold">รายงาน รพ.สต. ที่ยังไม่มีการจอง</h2>
+                    <p class="text-sm text-gray-500 mt-1">รายชื่อนี้อ้างอิงจากข้อมูล รพ.สต. และรายการจองที่โหลดจากชีต</p>
+                </div>
+                <button type="button"
+                        onclick="exportExcel()"
+                        class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+                    ส่งออก Excel ตามตัวกรอง
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-gray-600 text-sm">
+                        <tr>
+                            <th class="px-6 py-3">ลำดับ</th>
+                            <th class="px-6 py-3">ชื่อหน่วยบริการ (รพ.สต.)</th>
+                            <th class="px-6 py-3">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unbookedHospitalBody" class="divide-y divide-gray-100 text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+            <h2 class="text-lg font-bold text-gray-800">ภาพถ่ายตัวอย่างสลากกาชาด (23 เล่ม)</h2>
+            <p class="text-sm text-gray-500">
+                ภาพต้นฉบับเล่มสลากกาชาดการกุศลงานฤดูหนาวและของดีนครลำปาง ประจำปี 2569
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border rounded-xl p-3 bg-gray-50 shadow-sm">
+                    <p class="text-xs font-semibold text-gray-600 mb-2 text-center">ชุดที่ 1</p>
+                    <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=800&q=80"
+                         alt="ภาพสลากชุดที่ 1"
+                         class="w-full h-auto rounded-lg object-cover">
+                </div>
+
+                <div class="border rounded-xl p-3 bg-gray-50 shadow-sm">
+                    <p class="text-xs font-semibold text-gray-600 mb-2 text-center">ชุดที่ 2</p>
+                    <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80"
+                         alt="ภาพสลากชุดที่ 2"
+                         class="w-full h-auto rounded-lg object-cover">
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="text-center py-6 text-gray-500 text-sm">
+    <p>ระบบสนับสนุนงานกาชาดจังหวัดลำปาง ปี 2569</p>
+</footer>
+
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6Am9YmHU57ca86xLwlZUpl24vfL6NcqVFpSEtcm-bQ7PaIMmYHOLbVtceCZPrwfk/exec";
+
+    let globalData = { hospitals: [], tickets: [] };
+    let currentTicketFilter = "all";
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
+    }
+
+    function getHospitalName(value) {
+        if (typeof value === "string" || typeof value === "number") {
+            const name = String(value).trim();
+            if (!name || ["undefined", "null", "[object Object]"].includes(name.toLowerCase())) {
+                return "";
+            }
+            return name;
         }
 
-        function handleResponse(data) {
-            globalData = data;
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('mainContent').classList.remove('hidden');
-            renderDashboard();
+        if (value && typeof value === "object") {
+            return getHospitalName(
+                value.hospital ??
+                value.name ??
+                value.hospitalName ??
+                value.facility ??
+                value.rpst ??
+                ""
+            );
         }
 
-        function renderDashboard() {
-            const hospitals = globalData.hospitals;
-            const ticketsData = globalData.tickets;
+        return "";
+    }
 
-            document.getElementById('totalHospitals').innerHTML = `${hospitals.length} <span class="text-sm font-normal text-gray-500">แห่ง</span>`;
-            
-            const bookedTickets = ticketsData.filter(t => t.hospital !== "");
-            const availableTickets = ticketsData.filter(t => t.hospital === "");
-            const totalMoneyVal = bookedTickets.reduce((sum, t) => sum + (Number(t.price) || 100), 0);
+    function normalizeHospitalName(value) {
+        return getHospitalName(value).replace(/\s+/g, " ").trim();
+    }
 
-            document.getElementById('totalBooked').innerHTML = `${bookedTickets.length} <span class="text-sm font-normal text-gray-500">ฉบับ</span>`;
-            document.getElementById('totalAvailable').innerHTML = `${availableTickets.length} <span class="text-sm font-normal text-gray-500">ฉบับ</span>`;
-            document.getElementById('totalMoney').innerHTML = `${totalMoneyVal.toLocaleString()} <span class="text-sm font-normal text-gray-500">บาท</span>`;
+    function getTicketBooker(ticket) {
+        return String(
+            ticket?.booker ??
+            ticket?.bookerName ??
+            ticket?.reserver ??
+            ""
+        ).trim();
+    }
 
-            const ticketBody = document.getElementById('ticketTableBody');
-            ticketBody.innerHTML = '';
-            ticketsData.forEach(t => {
-                const isBooked = t.hospital !== "";
-                const row = document.createElement('tr');
-                row.className = "hover:bg-gray-50";
-                row.setAttribute('data-status', isBooked ? 'booked' : 'available');
-                row.innerHTML = `
-                    <td class="px-6 py-4 font-medium text-gray-900">${t.id}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-2.5 py-1 ${isBooked ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'} rounded-full text-xs font-semibold">
-                            ${isBooked ? 'จองแล้ว' : 'ยังไม่จอง'}
-                        </span>
+    function getTicketPrice(ticket) {
+        const price = Number(ticket?.price);
+        return Number.isFinite(price) && price > 0 ? price : 100;
+    }
+
+    function loadData() {
+        const script = document.createElement("script");
+        script.src = `${WEB_APP_URL}?callback=handleResponse`;
+        script.onerror = function () {
+            showError("โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบการ Deploy ของ Apps Script แล้วลองรีเฟรชหน้าเว็บ");
+        };
+        document.body.appendChild(script);
+    }
+
+    function showError(message) {
+        document.getElementById("loading").style.display = "none";
+        const errorBox = document.getElementById("errorMessage");
+        errorBox.textContent = message;
+        errorBox.classList.remove("hidden");
+    }
+
+    function handleResponse(data) {
+        if (!data || data.error) {
+            showError(data?.error || "ได้รับข้อมูลจาก Google Sheets ไม่ถูกต้อง");
+            return;
+        }
+
+        globalData = {
+            hospitals: Array.isArray(data.hospitals) ? data.hospitals : [],
+            tickets: Array.isArray(data.tickets) ? data.tickets : []
+        };
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("mainContent").classList.remove("hidden");
+        renderDashboard();
+    }
+
+    function getHospitalList() {
+        const namesFromSheet = globalData.hospitals
+            .map(getHospitalName)
+            .filter(Boolean);
+
+        const namesFromBookings = globalData.tickets
+            .map(ticket => getHospitalName(ticket?.hospital))
+            .filter(Boolean);
+
+        const unique = new Map();
+
+        [...namesFromSheet, ...namesFromBookings].forEach(name => {
+            const key = normalizeHospitalName(name);
+            if (key && !unique.has(key)) unique.set(key, name);
+        });
+
+        return [...unique.values()];
+    }
+
+    function renderDashboard() {
+        const hospitals = getHospitalList();
+        const tickets = globalData.tickets;
+
+        document.getElementById("totalHospitals").innerHTML =
+            `${hospitals.length.toLocaleString()} <span class="text-sm font-normal text-gray-500">แห่ง</span>`;
+
+        const bookedTickets = tickets.filter(ticket => getHospitalName(ticket?.hospital));
+        const availableTickets = tickets.filter(ticket => !getHospitalName(ticket?.hospital));
+        const totalMoney = bookedTickets.reduce((sum, ticket) => sum + getTicketPrice(ticket), 0);
+
+        document.getElementById("totalBooked").innerHTML =
+            `${bookedTickets.length.toLocaleString()} <span class="text-sm font-normal text-gray-500">ฉบับ</span>`;
+
+        document.getElementById("totalAvailable").innerHTML =
+            `${availableTickets.length.toLocaleString()} <span class="text-sm font-normal text-gray-500">ฉบับ</span>`;
+
+        document.getElementById("totalMoney").innerHTML =
+            `${totalMoney.toLocaleString()} <span class="text-sm font-normal text-gray-500">บาท</span>`;
+
+        renderTicketTable();
+        renderHospitalSummary();
+        renderUnbookedHospitals();
+    }
+
+    function renderTicketTable() {
+        const ticketBody = document.getElementById("ticketTableBody");
+        ticketBody.innerHTML = "";
+
+        globalData.tickets.forEach(ticket => {
+            const hospital = getHospitalName(ticket?.hospital);
+            const isBooked = Boolean(hospital);
+            const ticketId = ticket?.id ?? ticket?.ticketId ?? "";
+            const row = document.createElement("tr");
+
+            row.className = "hover:bg-gray-50";
+            row.dataset.status = isBooked ? "booked" : "available";
+            row.innerHTML = `
+                <td class="px-6 py-4 font-medium text-gray-900">${escapeHtml(ticketId)}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2.5 py-1 ${isBooked ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"} rounded-full text-xs font-semibold">
+                        ${isBooked ? "จองแล้ว" : "ยังไม่จอง"}
+                    </span>
+                </td>
+                <td class="px-6 py-4 ${isBooked ? "text-gray-900 font-medium" : "text-gray-400"}">
+                    ${isBooked ? escapeHtml(hospital) : "-"}
+                </td>
+                <td class="px-6 py-4">${getTicketPrice(ticket).toLocaleString()}</td>
+            `;
+            ticketBody.appendChild(row);
+        });
+
+        applyTicketFilters();
+    }
+
+    function renderHospitalSummary() {
+        const hospitalBody = document.getElementById("hospitalTableBody");
+        hospitalBody.innerHTML = "";
+
+        const hospitals = getHospitalList();
+
+        hospitals.forEach(hospital => {
+            const hospitalKey = normalizeHospitalName(hospital);
+
+            const bookedTickets = globalData.tickets.filter(ticket =>
+                normalizeHospitalName(ticket?.hospital) === hospitalKey
+            );
+
+            const count = bookedTickets.length;
+            const money = bookedTickets.reduce((sum, ticket) => sum + getTicketPrice(ticket), 0);
+            const ticketIds = bookedTickets
+                .map(ticket => ticket?.id ?? ticket?.ticketId ?? "")
+                .filter(Boolean)
+                .join(", ");
+
+            const row = document.createElement("tr");
+            row.dataset.bookingStatus = count > 0 ? "booked" : "unbooked";
+
+            row.innerHTML = `
+                <td class="px-6 py-4 font-medium text-gray-900">${escapeHtml(hospital)}</td>
+                <td class="px-6 py-4">${count.toLocaleString()}</td>
+                <td class="px-6 py-4 text-gray-600 text-xs">
+                    ${count > 0 ? escapeHtml(ticketIds) : '<span class="text-gray-400">- ไม่มีรายการจอง -</span>'}
+                </td>
+                <td class="px-6 py-4 font-semibold text-red-600">${money.toLocaleString()}</td>
+                <td class="px-6 py-4">
+                    <span class="text-orange-500 font-medium">รอนำส่ง (10 พ.ย. 69)</span>
+                </td>
+            `;
+
+            hospitalBody.appendChild(row);
+        });
+
+        filterHospitalSummary();
+    }
+
+    function renderUnbookedHospitals() {
+        const tbody = document.getElementById("unbookedHospitalBody");
+        const hospitals = getHospitalList();
+
+        const unbooked = hospitals.filter(hospital => {
+            const key = normalizeHospitalName(hospital);
+            return !globalData.tickets.some(ticket =>
+                normalizeHospitalName(ticket?.hospital) === key
+            );
+        });
+
+        if (unbooked.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-6 py-4 text-gray-500">
+                        ไม่พบ รพ.สต. ที่ยังไม่มีการจอง
                     </td>
-                    <td class="px-6 py-4 ${isBooked ? 'text-gray-900 font-medium' : 'text-gray-400'}">${isBooked ? t.hospital : '-'}</td>
-                    <td class="px-6 py-4">${t.price || 100}</td>
-                `;
-                ticketBody.appendChild(row);
-            });
-
-            const hospitalBody = document.getElementById('hospitalTableBody');
-            hospitalBody.innerHTML = '';
-            hospitals.forEach(hosp => {
-                const hospTickets = ticketsData.filter(t => t.hospital === hosp);
-                const count = hospTickets.length;
-                const money = count * 100;
-                const ticketIds = count > 0 ? hospTickets.map(t => t.id).join(', ') : '<span class="text-gray-400">- ไม่มีรายการจอง -</span>';
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="px-6 py-4 font-medium text-gray-900">${hosp}</td>
-                    <td class="px-6 py-4">${count}</td>
-                    <td class="px-6 py-4 text-gray-600 text-xs">${ticketIds}</td>
-                    <td class="px-6 py-4 font-semibold text-red-600">${money.toLocaleString()}</td>
-                    <td class="px-6 py-4"><span class="text-orange-500 font-medium">รอนำส่ง (10 พ.ย. 69)</span></td>
-                `;
-                hospitalBody.appendChild(row);
-            });
+                </tr>
+            `;
+            return;
         }
 
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const term = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#ticketTableBody tr');
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(term) ? '' : 'none';
+        tbody.innerHTML = unbooked.map((hospital, index) => `
+            <tr>
+                <td class="px-6 py-3">${index + 1}</td>
+                <td class="px-6 py-3">${escapeHtml(hospital)}</td>
+                <td class="px-6 py-3 text-orange-600">ยังไม่มีการจอง</td>
+            </tr>
+        `).join("");
+    }
+
+    function filterHospitalSummary() {
+        const filter = document.getElementById("hospitalFilter").value;
+
+        document.querySelectorAll("#hospitalTableBody tr").forEach(row => {
+            const status = row.dataset.bookingStatus;
+            row.style.display = filter === "all" || filter === status ? "" : "none";
+        });
+    }
+
+    function filterTable(status) {
+        currentTicketFilter = status;
+        applyTicketFilters();
+    }
+
+    function applyTicketFilters() {
+        const term = document.getElementById("searchInput").value.trim().toLowerCase();
+
+        document.querySelectorAll("#ticketTableBody tr").forEach(row => {
+            const matchesStatus =
+                currentTicketFilter === "all" ||
+                row.dataset.status === currentTicketFilter;
+
+            const matchesSearch = row.innerText.toLowerCase().includes(term);
+            row.style.display = matchesStatus && matchesSearch ? "" : "none";
+        });
+    }
+
+    function exportExcel() {
+        if (typeof XLSX === "undefined") {
+            alert("โหลดเครื่องมือสร้าง Excel ไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่");
+            return;
+        }
+
+        const filter = document.getElementById("hospitalFilter").value;
+        const hospitals = getHospitalList();
+
+        const selectedHospitals = hospitals.filter(hospital => {
+            const key = normalizeHospitalName(hospital);
+            const booked = globalData.tickets.some(ticket =>
+                normalizeHospitalName(ticket?.hospital) === key
+            );
+
+            if (filter === "booked") return booked;
+            if (filter === "unbooked") return !booked;
+            return true;
+        });
+
+        if (selectedHospitals.length === 0) {
+            alert("ไม่พบข้อมูลตามตัวกรองที่เลือก");
+            return;
+        }
+
+        const summaryRows = selectedHospitals.map(hospital => {
+            const key = normalizeHospitalName(hospital);
+            const bookedTickets = globalData.tickets.filter(ticket =>
+                normalizeHospitalName(ticket?.hospital) === key
+            );
+
+            return {
+                "ชื่อหน่วยบริการ (รพ.สต.)": hospital,
+                "สถานะ": bookedTickets.length > 0 ? "มีการจอง" : "ยังไม่มีการจอง",
+                "จำนวนสลากที่จอง (ฉบับ)": bookedTickets.length,
+                "เลขที่สลากที่จอง": bookedTickets
+                    .map(ticket => ticket?.id ?? ticket?.ticketId ?? "")
+                    .filter(Boolean)
+                    .join(", "),
+                "ชื่อผู้จอง": [...new Set(bookedTickets.map(getTicketBooker).filter(Boolean))].join(", "),
+                "ยอดเงินรวม (บาท)": bookedTickets.reduce((sum, ticket) => sum + getTicketPrice(ticket), 0),
+                "สถานะการส่งเงิน": bookedTickets.length > 0 ? "รอนำส่ง (10 พ.ย. 69)" : "-"
+            };
+        });
+
+        const detailRows = [];
+
+        selectedHospitals.forEach(hospital => {
+            const key = normalizeHospitalName(hospital);
+            const bookedTickets = globalData.tickets.filter(ticket =>
+                normalizeHospitalName(ticket?.hospital) === key
+            );
+
+            if (bookedTickets.length === 0) {
+                detailRows.push({
+                    "ชื่อหน่วยบริการ (รพ.สต.)": hospital,
+                    "ชื่อผู้จอง": "",
+                    "หมายเลขที่จอง": "",
+                    "ราคา (บาท)": 0,
+                    "สถานะ": "ยังไม่มีการจอง"
+                });
+                return;
+            }
+
+            bookedTickets.forEach(ticket => {
+                detailRows.push({
+                    "ชื่อหน่วยบริการ (รพ.สต.)": hospital,
+                    "ชื่อผู้จอง": getTicketBooker(ticket),
+                    "หมายเลขที่จอง": ticket?.id ?? ticket?.ticketId ?? "",
+                    "ราคา (บาท)": getTicketPrice(ticket),
+                    "สถานะ": "จองแล้ว"
+                });
             });
         });
 
-        function filterTable(status) {
-            const rows = document.querySelectorAll('#ticketTableBody tr');
-            rows.forEach(row => {
-                const rowStatus = row.getAttribute('data-status');
-                if (status === 'all' || rowStatus === status) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
+        const workbook = XLSX.utils.book_new();
+        const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+        const detailSheet = XLSX.utils.json_to_sheet(detailRows);
 
-        window.onload = loadData;
-    </script>
+        XLSX.utils.book_append_sheet(workbook, summarySheet, "สรุปราย รพ.สต.");
+        XLSX.utils.book_append_sheet(workbook, detailSheet, "รายละเอียดการจอง");
+
+        const date = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(workbook, `รายงานการจองสลาก_${date}.xlsx`);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applyTicketFilters);
+
+    window.onload = loadData;
+</script>
+
 </body>
 </html>
